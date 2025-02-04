@@ -14,7 +14,7 @@ void setup() {
   while (data == "s"){
       fqc = Serial.readStringUntil("|").toFloat();
       float per = 1/fqc;
-    lsron =  10;
+    lsron =  fqc/2;
     lsroff = per - lsron;
   }
 }
