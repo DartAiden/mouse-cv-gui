@@ -23,9 +23,9 @@ class saver():
         self.lister = []
         self.fqc = fqc
         self.output = output
-        #self.arduino = serial.Serial(port = self.output, baudrate=11520)
+        self.arduino = serial.Serial(port = self.output, baudrate=11520)
         send = str(self.fqc) +"|"
-        #self.arduino.write(send.encode())
+        self.arduino.write(send.encode())
     def anal(self, frame: np.ndarray):
 
         frame = cv.cvtColor(frame, cv.COLOR_BGR2GRAY) #converts the frame back to grayscale to elimate the channel
@@ -39,11 +39,11 @@ class saver():
         cX = int(m["m10"] / m["m00"]) #finds the midpoind
         cY = int(m["m01"] / m["m00"])
         self.lister.append(np.array((cX, cY))) #Adds it to the record of centroids
-        if cX > 320: #placeholder function - replace with laser
-            #self.arduino.write("12|".encode())
+        if cX > 320: #placeholder function - replace with laser 
+            self.arduino.write("12|".encode())
             print("right")
         else:
-            #self.arduino.write("02|".encode())
+            self.arduino.write("02|".encode())
             print("left")
     def end(self):
         arr = np.array(self.lister)
@@ -51,5 +51,5 @@ class saver():
         plt.xlim([0,640])
         plt.ylim([0,480])
         plt.show()
-        #self.arduino.close()
+        self.arduino.close()
             
