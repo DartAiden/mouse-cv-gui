@@ -18,13 +18,14 @@ def getcams():
 
 
 class saver():
-    def __init__(self, filename, width, height, fqc, output):
+    def __init__(self, filename, width, height, fqc, output, direction):
 
         self.lister = []
         self.fqc = fqc
         self.output = output
         self.arduino = serial.Serial(port = self.output, baudrate=11520)
         send = str(self.fqc) +"|"
+        self.direction = direction
         self.arduino.write(send.encode())
     def anal(self, frame: np.ndarray):
 
@@ -36,15 +37,19 @@ class saver():
         conts, _ = cv.findContours(frame, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE) #pulls the countor
         conts = sorted(conts, key =lambda it: cv.contourArea(it), reverse = True) #sorts them by area in reverse order
         m = cv.moments(conts[0]) #pulls the largest
-        cX = int(m["m10"] / m["m00"]) #finds the midpoind
+        cX = int(m["m10"] / m["m00"]) #finds the midpoint
         cY = int(m["m01"] / m["m00"])
         self.lister.append(np.array((cX, cY))) #Adds it to the record of centroids
-        if cX > 320: #placeholder function - replace with laser 
-            self.arduino.write("12|".encode())
-            print("right")
+        if self.direction:
+            if cX > 320: #placeholder function - replace with laser 
+                self.arduino.write("12|".encode())
+            else:
+                self.arduino.write("02|".encode())
         else:
-            self.arduino.write("02|".encode())
-            print("left")
+            if cX > 320: #placeholder function - replace with laser 
+                self.arduino.write("02|".encode())
+            else:
+                self.arduino.write("12|".encode())
     def end(self):
         arr = np.array(self.lister)
         plt.scatter(arr[:,0], arr[:,1])

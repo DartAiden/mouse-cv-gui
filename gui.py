@@ -55,7 +55,7 @@ class MainWindow(QMainWindow):
         layout.setContentsMargins(10,0,10,0)
         layout.setSpacing(10)
         self.setWindowTitle("Place Preference")
-        self.setFixedSize(QSize(1200, 900))                        
+        self.setFixedSize(QSize(800, 600))                        
         self.setStyleSheet("background : white;") 
 
         self.outputs = QComboBox()
@@ -104,14 +104,14 @@ class MainWindow(QMainWindow):
         self.filterlabel.setText("Filter")
         self.filterlabel.stateChanged.connect(onfilter)
         self.filterlabel.setChecked(False)
-        layout.addWidget(self.filterlabel, 15, 6, 1, 1)
+        layout.addWidget(self.filterlabel, 13, 6, 1, 1)
         try:
             self.cap = cv.VideoCapture(self.caminds[self.camnames[0]])
 
         except:
             pass
         self.currentframe = QLabel()
-        layout.addWidget(self.currentframe, 20, 2, 1, 14)
+        layout.addWidget(self.currentframe, 20, 0, 1, 14)
         self.defaults = {"brightness" : self.cap.get(cv.CAP_PROP_BRIGHTNESS), #These save the default values of certain camera settings on OpenCV.
                     "saturation" : self.cap.get(cv.CAP_PROP_SATURATION), #OpenCV modifies the cameara settings, so this is necessary
                     "contrast" : self.cap.get(cv.CAP_PROP_CONTRAST),
@@ -126,7 +126,6 @@ class MainWindow(QMainWindow):
             self.cap.set(cv.CAP_PROP_GAIN, self.defaults["gain"])
         except:
             pass
-        print(self.defaults)
         self.timer = QTimer()
         self.timer.timeout.connect(self.readframe) #pulls the frame every self.refresh mses
         self.timer.start(self.refresh)
@@ -136,6 +135,15 @@ class MainWindow(QMainWindow):
         self.launch.clicked.connect(self.launchCallback)
         layout.addWidget(self.launch,40,0,1,10)
         layout.setRowStretch(39,40)
+
+
+        self.left = QComboBox()
+        self.leftlabel = QLabel("Side:")
+        self.left.editable = False
+        self.left.addItems(["Left", "Right"])
+        layout.addWidget(self.leftlabel, 13, 11, 2, 1)
+        layout.addWidget(self.left, 13, 12, 2, 1)
+        self.choice = {"Left" : False, "Right" : True}
 
         widget = QWidget()
         widget.setLayout(layout)
@@ -179,12 +187,13 @@ class MainWindow(QMainWindow):
             self.filterlabel.setEnabled(False)
             self.txtbox.setEnabled(False)
             self.outputs.setEnabled(False)
+            self.left.setEnabled(False)
             cams = cvanalysis.getcams()
             self.launch.setEnabled(False)
             print(self.txtbox.text())
             self.name = str(self.txtbox.text()) + ".mp4"
             end = time.time() + self.timeend
-            runner = cvanalysis.saver(self.name, 640, 320, self.fqcbox.text(),  self.outputs.currentText())
+            runner = cvanalysis.saver(self.name, 640, 320, self.fqcbox.text(),  self.outputs.currentText(), self.choice[self.left.currentText()])
             
             fourcc = cv.VideoWriter_fourcc(*'mp4v')
             frame_width = int(self.cap.get(cv.CAP_PROP_FRAME_WIDTH))
@@ -203,6 +212,7 @@ class MainWindow(QMainWindow):
             self.txtbox.setEnabled(True)
             self.outputs.setEnabled(True)
             self.launch.setEnabled(True)
+            self.left.setEnabled(True)
             self.vid = 0
     def intcheck(self, num): #ensures the text is an int
         num = num.strip()
