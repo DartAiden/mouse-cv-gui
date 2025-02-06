@@ -43,18 +43,22 @@ class saver():
         if self.direction:
             if cX > 320: #placeholder function - replace with laser 
                 self.arduino.write("12|".encode())
+                print("right")
             else:
                 self.arduino.write("02|".encode())
+                print("left")
         else:
             if cX > 320: #placeholder function - replace with laser 
                 self.arduino.write("02|".encode())
+                print("right")
             else:
                 self.arduino.write("12|".encode())
+                print("left")
     def end(self):
         arr = np.array(self.lister)
         plt.scatter(arr[:,0], arr[:,1])
         plt.xlim([0,640])
         plt.ylim([0,480])
         plt.show()
-        self.arduino.close()
+        #self.arduino.close()
             

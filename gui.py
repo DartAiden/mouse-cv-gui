@@ -1,5 +1,5 @@
 from PyQt5 import QtMultimedia, QtTest
-from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QPushButton, QGridLayout, QComboBox, QLabel, QLineEdit, QCheckBox
+from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QPushButton, QGridLayout, QComboBox, QLabel, QLineEdit, QCheckBox, QFileDialog
 from PyQt5.QtCore import QSize, Qt, QEventLoop, QThread, QTimer
 import cv2 as cv
 from PyQt5.QtGui import QPixmap, QImage
@@ -7,6 +7,7 @@ from PyQt5.QtMultimediaWidgets import QCameraViewfinder
 import cvanalysis
 import numpy as np
 import time
+import os
 from pygrabber.dshow_graph import FilterGraph
 '''
 This is a program that creates a GUI to determine which place a mouse preferences, analyzes the position, and then plots it.
@@ -78,14 +79,29 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.camlabel, 5, 0,1,10)
         layout.setRowStretch(6,0)
         layout.setRowStretch(4,2)
+        self.filepath = os.getcwd()
 
+        def filepath():
+            HOME_PATH = os.getenv("HOME")
+            self.filepath = QFileDialog.getExistingDirectory(self, "Select Destination Folder") + "/"
+            if self.filepath:
+                self.currentpath.setText("Current path: " + self.filepath)
+
+            print(self.filepath)
+    
 
         self.txtboxlabel = QLabel("File name: (Do not include extension)")
         self.txtbox = QLineEdit()
         layout.addWidget(self.txtboxlabel,9,0,1,10)
-        layout.addWidget(self.txtbox,11,0,1,10)
+        layout.addWidget(self.txtbox,11,0,1,7)
+        self.filepathbut = QPushButton("Select file path")
+        self.filepathbut.clicked.connect(filepath)
+        self.currentpath = QLabel("Current path: " + self.filepath)
+        layout.addWidget(self.filepathbut,11,8,1,5)
         layout.setRowStretch(10,0)
         layout.setRowStretch(8,2)
+
+        layout.addWidget(self.currentpath, 15,0,1,3)
 
 
 
@@ -111,7 +127,7 @@ class MainWindow(QMainWindow):
         except:
             pass
         self.currentframe = QLabel()
-        layout.addWidget(self.currentframe, 20, 0, 1, 14)
+        layout.addWidget(self.currentframe, 22, 0, 1, 14)
         self.defaults = {"brightness" : self.cap.get(cv.CAP_PROP_BRIGHTNESS), #These save the default values of certain camera settings on OpenCV.
                     "saturation" : self.cap.get(cv.CAP_PROP_SATURATION), #OpenCV modifies the cameara settings, so this is necessary
                     "contrast" : self.cap.get(cv.CAP_PROP_CONTRAST),
@@ -141,8 +157,8 @@ class MainWindow(QMainWindow):
         self.leftlabel = QLabel("Side:")
         self.left.editable = False
         self.left.addItems(["Left", "Right"])
-        layout.addWidget(self.leftlabel, 13, 11, 2, 1)
-        layout.addWidget(self.left, 13, 12, 2, 1)
+        layout.addWidget(self.leftlabel, 13, 9, 2, 1)
+        layout.addWidget(self.left, 13, 10, 2, 1)
         self.choice = {"Left" : False, "Right" : True}
 
         widget = QWidget()
@@ -191,7 +207,7 @@ class MainWindow(QMainWindow):
             cams = cvanalysis.getcams()
             self.launch.setEnabled(False)
             print(self.txtbox.text())
-            self.name = str(self.txtbox.text()) + ".mp4"
+            self.name = self.filepath + str(self.txtbox.text()) + ".mp4"
             end = time.time() + self.timeend
             runner = cvanalysis.saver(self.name, 640, 320, self.fqcbox.text(),  self.outputs.currentText(), self.choice[self.left.currentText()])
             
