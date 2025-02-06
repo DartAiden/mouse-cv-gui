@@ -60,5 +60,5 @@ class saver():
         plt.xlim([0,640])
         plt.ylim([0,480])
         plt.show()
-        #self.arduino.close()
+        self.arduino.close()
             

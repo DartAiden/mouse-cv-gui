@@ -24,7 +24,8 @@ class MainWindow(QMainWindow):
             if self.cap:
                 self.cap.release() 
             try:
-                self.cap = cv.VideoCapture(self.caminds[self.cams.currentText]) #changes the camera that is being used to capture
+                placeholder = cv.VideoCapture(self.caminds[self.cams.currentText])
+                self.cap = placeholder #changes the camera that is being used to capture
             except:
                 pass
         def onfilter():
