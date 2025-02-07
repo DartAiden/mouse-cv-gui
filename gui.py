@@ -54,7 +54,7 @@ class MainWindow(QMainWindow):
                 self.cap.set(cv.CAP_PROP_WB_TEMPERATURE, self.defaults["wb"])
                 self.cap.set(cv.CAP_PROP_GAIN, self.defaults["gain"])
 
-        self.timeend = 10 #how long the recording lasts for
+        self.timeend = 600 #how long the recording lasts for
         self.refresh = 20 #how often to pull the frame
         devices = FilterGraph().get_input_devices()
         self.camnames = [] #strings of the camnames
