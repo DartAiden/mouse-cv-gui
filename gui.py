@@ -40,6 +40,9 @@ class MainWindow(QMainWindow):
                     "wb" : self.cap.get(cv.CAP_PROP_WB_TEMPERATURE)} 
                  except:
                     pass
+            else:
+                self.cap.release()
+                self.cap = None
         def onfilter():
             if self.filterlabel.checkState():  
                 self.cap.set(cv.CAP_PROP_BRIGHTNESS, self.defaults["brightness"] - 10) #Settings to imitate the original MATLAB
@@ -90,8 +93,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.camlabel, 5, 0,1,10)
         layout.setRowStretch(6,0)
         layout.setRowStretch(4,2)
-        self.filepath = os.getcwd()
-
+        self.filepath = os.getcwd() + "\\"
         def filepath():
             HOME_PATH = os.getenv("HOME")
             self.filepath = QFileDialog.getExistingDirectory(self, "Select Destination Folder") + "/"
@@ -175,38 +177,38 @@ class MainWindow(QMainWindow):
         widget.setLayout(layout)
         self.setCentralWidget(widget)
     def readframe(self):
-        ret, frame = self.cap.read()
+        if self.cap.isOpened():
+            ret, frame = self.cap.read()
 
-        if ret:
-            if self.vid != 0:
-                self.vid.write(frame)
-            if self.filterlabel.checkState():
-                self.inter = frame
+            if ret:
+                if self.vid != 0:
+                    self.vid.write(frame)
+                if self.filterlabel.checkState():
+                    self.inter = frame
+                    self.inter = cv.cvtColor(self.inter, cv.COLOR_BGR2RGB)
+                    self.inter = cv.cvtColor(self.inter, cv.COLOR_BGR2GRAY)  #converts it to grayscale
+                    ret, self.inter = cv.threshold(self.inter, 127, 255, cv.THRESH_BINARY) #and then the binary black and white
+                    self.frame = cv.cvtColor(self.inter, cv.COLOR_GRAY2RGB) #and then back to color
 
-                self.inter = cv.cvtColor(self.inter, cv.COLOR_BGR2RGB)
+                    
+                else:
+                    self.inter = frame
+                    self.frame = cv.cvtColor(self.inter,cv.COLOR_BGR2RGB)
 
-                self.inter = cv.cvtColor(self.inter, cv.COLOR_BGR2GRAY)  #converts it to grayscale
 
-                ret, self.inter = cv.threshold(self.inter, 127, 255, cv.THRESH_BINARY) #and then the binary black and white
+                h, w, ch = self.frame.shape
+                bline = ch * w
 
-                self.frame = cv.cvtColor(self.inter, cv.COLOR_GRAY2RGB) #and then back to color
-
-                
+                start = np.array((int(w/2),h))
+                end = np.array((int(w/2),0))
+                cv.line(self.frame, start, end , (255,0,0), 2) #adds a midline
+                qimage = QImage(self.frame, w, h, bline, QImage.Format_RGB888) #converts the capture to a QImage
+                pixmap = QPixmap.fromImage(qimage) #And then a QPixmap
+                self.currentframe.setPixmap(pixmap) #and then sets it
             else:
-                self.inter = frame
-                self.frame = cv.cvtColor(self.inter,cv.COLOR_BGR2RGB)
-
-
-            h, w, ch = self.frame.shape
-            bline = ch * w
-
-            start = np.array((int(w/2),h))
-            end = np.array((int(w/2),0))
-            cv.line(self.frame, start, end , (255,0,0), 2) #adds a midline
-            qimage = QImage(self.frame, w, h, bline, QImage.Format_RGB888) #converts the capture to a QImage
-        
-            pixmap = QPixmap.fromImage(qimage) #And then a QPixmap
-            self.currentframe.setPixmap(pixmap) #and then sets it
+                self.frame = np.zeros(shape=[640, 480,3])
+        else:
+            self.frame = np.zeros(shape=[640, 480,3])
 
     def launchCallback(self):
         if self.intcheck(self.fqcbox.text()) and self.validname(self.txtbox.text()):
