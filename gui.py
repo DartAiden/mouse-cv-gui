@@ -21,16 +21,28 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         def oncamchange():    
-            if self.cap:
-                self.cap.release() 
-            try:
-                placeholder = cv.VideoCapture(self.caminds[self.cams.currentText])
-                self.cap = placeholder #changes the camera that is being used to capture
-            except:
-                pass
+            placeholder = cv.VideoCapture(self.caminds[self.cams.currentText()], cv.CAP_DSHOW)
+            if placeholder.isOpened() and placeholder is not None:
+                 if self.cap:
+                    self.cap.set(cv.CAP_PROP_BRIGHTNESS, self.defaults["brightness"])
+                    self.cap.set(cv.CAP_PROP_CONTRAST, self.defaults["contrast"])
+                    self.cap.set(cv.CAP_PROP_SATURATION, self.defaults["saturation"])
+                    self.cap.set(cv.CAP_PROP_CONTRAST, self.defaults["wb"])
+                    self.cap.set(cv.CAP_PROP_GAIN, self.defaults["gain"])
+                    self.cap.release() 
+                 try:
+                    self.cap = placeholder #changes the camera that is being used to capture
+                    self.defaults = {"brightness" : self.cap.get(cv.CAP_PROP_BRIGHTNESS), #These save the default values of certain camera settings on OpenCV.
+                    "saturation" : self.cap.get(cv.CAP_PROP_SATURATION), #OpenCV modifies the cameara settings, so this is necessary
+                    "contrast" : self.cap.get(cv.CAP_PROP_CONTRAST),
+                    "exposure" : self.cap.get(cv.CAP_PROP_EXPOSURE),
+                    "gain" : self.cap.get(cv.CAP_PROP_GAIN),
+                    "wb" : self.cap.get(cv.CAP_PROP_WB_TEMPERATURE)} 
+                 except:
+                    pass
         def onfilter():
             if self.filterlabel.checkState():  
-                self.cap.set(cv.CAP_PROP_BRIGHTNESS, 0.0) #Settings to imitate the original MATLAB
+                self.cap.set(cv.CAP_PROP_BRIGHTNESS, self.defaults["brightness"] - 10) #Settings to imitate the original MATLAB
                 self.cap.set(cv.CAP_PROP_CONTRAST, 104.0)
                 self.cap.set(cv.CAP_PROP_SATURATION, 50)
                 self.cap.set(cv.CAP_PROP_WB_TEMPERATURE, 5950.0) 
@@ -48,15 +60,13 @@ class MainWindow(QMainWindow):
         self.camnames = [] #strings of the camnames
         self.caminds = {} #indices of the sams
         for device_index, device_name in enumerate(devices):
-            if cv.VideoCapture(device_index).isOpened():
-                self.camnames.append(str(device_index))
-            
+            self.camnames.append(str(device_index))
             self.caminds[str(device_index)] = device_index
         layout = QGridLayout()
 
         layout.setContentsMargins(10,0,10,0)
         layout.setSpacing(10)
-        self.setWindowTitle("Place Preference")
+        self.setWindowTitle("Place Preference (NOT RECORDING)")
         self.setFixedSize(QSize(800, 600))                        
         self.setStyleSheet("background : white;") 
 
@@ -88,7 +98,6 @@ class MainWindow(QMainWindow):
             if self.filepath:
                 self.currentpath.setText("Current path: " + self.filepath)
 
-            print(self.filepath)
     
 
         self.txtboxlabel = QLabel("File name: (Do not include extension)")
@@ -123,7 +132,7 @@ class MainWindow(QMainWindow):
         self.filterlabel.setChecked(False)
         layout.addWidget(self.filterlabel, 13, 6, 1, 1)
         try:
-            self.cap = cv.VideoCapture(self.caminds[self.camnames[0]])
+            self.cap = cv.VideoCapture(self.caminds[self.camnames[0]], cv.CAP_DSHOW)
 
         except:
             pass
@@ -150,7 +159,7 @@ class MainWindow(QMainWindow):
         self.launch = QPushButton("Start")
         self.launch.setCheckable(True) 
         self.launch.clicked.connect(self.launchCallback)
-        layout.addWidget(self.launch,40,0,1,10)
+        layout.addWidget(self.launch,40,0,1,11)
         layout.setRowStretch(39,40)
 
 
@@ -167,22 +176,24 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(widget)
     def readframe(self):
         ret, frame = self.cap.read()
+
         if ret:
             if self.vid != 0:
                 self.vid.write(frame)
             if self.filterlabel.checkState():
-
-                ret,self.inter = self.cap.read()
+                self.inter = frame
 
                 self.inter = cv.cvtColor(self.inter, cv.COLOR_BGR2RGB)
-                self.inter = cv.cvtColor(self.inter, cv.COLOR_BGR2GRAY)  #converts it to grayscale
-                ret, self.inter = cv.threshold(self.inter, 127, 255, cv.THRESH_BINARY) #and then the binary black and white
-                self.frame = cv.cvtColor(self.inter, cv.COLOR_GRAY2RGB) #and then back to color
 
+                self.inter = cv.cvtColor(self.inter, cv.COLOR_BGR2GRAY)  #converts it to grayscale
+
+                ret, self.inter = cv.threshold(self.inter, 127, 255, cv.THRESH_BINARY) #and then the binary black and white
+
+                self.frame = cv.cvtColor(self.inter, cv.COLOR_GRAY2RGB) #and then back to color
 
                 
             else:
-                ret,self.inter = self.cap.read()
+                self.inter = frame
                 self.frame = cv.cvtColor(self.inter,cv.COLOR_BGR2RGB)
 
 
@@ -207,7 +218,6 @@ class MainWindow(QMainWindow):
             self.left.setEnabled(False)
             cams = cvanalysis.getcams()
             self.launch.setEnabled(False)
-            print(self.txtbox.text())
             self.name = self.filepath + str(self.txtbox.text()) + ".mp4"
             end = time.time() + self.timeend
             runner = cvanalysis.saver(self.name, 640, 320, self.fqcbox.text(),  self.outputs.currentText(), self.choice[self.left.currentText()])
@@ -216,12 +226,13 @@ class MainWindow(QMainWindow):
             frame_width = int(self.cap.get(cv.CAP_PROP_FRAME_WIDTH))
             frame_height = int(self.cap.get(cv.CAP_PROP_FRAME_HEIGHT))
             self.vid = cv.VideoWriter(self.name, fourcc, 15.0, (frame_width,frame_height))
-
-
+            
+            self.setWindowTitle("Place Preference (RECORDING)")
             while time.time() < end:
                 runner.anal(self.frame)
                 QtTest.QTest.qWait(self.refresh)
             self.vid.release()
+            self.setWindowTitle("Place Preference (NOT RECORDING)")
 
             runner.end()
             self.fqcbox.setEnabled(True)
