@@ -61,7 +61,7 @@ class MainWindow(QMainWindow):
         self.refresh = 20 #how often to pull the frame
         devices = FilterGraph().get_input_devices()
         self.camnames = [] #strings of the camnames
-        self.caminds = {} #indices of the sams
+        self.caminds = {} #indices of the cams
         for device_index, device_name in enumerate(devices):
             self.camnames.append(str(device_index))
             self.caminds[str(device_index)] = device_index
