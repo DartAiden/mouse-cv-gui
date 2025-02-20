@@ -3,28 +3,34 @@ int fqc;
 int lsrout = 12;
 float lsron;
 float lsroff;
+float frq;
+bool setupfrq = false;
 bool on = false;
 unsigned long end = 0;
 unsigned long now;
 void setup() {
   // put your setup code here, to run once:
-  Serial.begin(11520);
+  Serial.begin(9600);
   pinMode(lsrout, OUTPUT);
-  String data = "s";
-  while (data == "s"){
-      fqc = Serial.readStringUntil("|").toFloat();
-      float per = 1/fqc;
-    lsron =  fqc/2;
-    lsroff = per - lsron;
+  while (true){
+    if (!setupfrq){
+      if (Serial.available()){
+            frq = Serial.parseFloat();
+            setupfrq = true;
+            float per = 1/frq;
+            lsron = 10;
+            lsroff = per - lsron;
+            break;
+
+      }
+    }
   }
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-    now = millis();
+  now = millis();
   if (Serial.available()){
-  String a = Serial.readStringUntil("2");
-  int r = a.toInt();
+  int r = Serial.parseInt();
   if (r == 1 && !on && now > end){
     on = true;
     digitalWrite(lsrout, HIGH);
