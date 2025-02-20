@@ -47,7 +47,7 @@ class MainWindow(QMainWindow):
             if self.filterlabel.checkState():  
                 self.cap.set(cv.CAP_PROP_BRIGHTNESS, self.defaults["brightness"] - 10) #Settings to imitate the original MATLAB
                 self.cap.set(cv.CAP_PROP_CONTRAST, 104.0)
-                self.cap.set(cv.CAP_PROP_SATURATION, 50)
+                self.cap.set(cv.CAP_PROP_SATURATION, 100)
                 self.cap.set(cv.CAP_PROP_WB_TEMPERATURE, 5950.0) 
                 self.cap.set(cv.CAP_PROP_GAIN, 1) 
             else:
@@ -57,7 +57,7 @@ class MainWindow(QMainWindow):
                 self.cap.set(cv.CAP_PROP_WB_TEMPERATURE, self.defaults["wb"])
                 self.cap.set(cv.CAP_PROP_GAIN, self.defaults["gain"])
 
-        self.timeend = 600 #how long the recording lasts for
+        self.timeend = 60 #how long the recording lasts for
         self.refresh = 20 #how often to pull the frame
         devices = FilterGraph().get_input_devices()
         self.camnames = [] #strings of the camnames
@@ -218,11 +218,12 @@ class MainWindow(QMainWindow):
             self.txtbox.setEnabled(False)
             self.outputs.setEnabled(False)
             self.left.setEnabled(False)
+            self.filepathbut.setEnabled(False)
             cams = cvanalysis.getcams()
             self.launch.setEnabled(False)
             self.name = self.filepath + str(self.txtbox.text()) + ".mp4"
             end = time.time() + self.timeend
-            runner = cvanalysis.saver(self.name, 640, 320, self.fqcbox.text(),  self.outputs.currentText(), self.choice[self.left.currentText()])
+            self.runner = cvanalysis.saver(self.name, 640, 320, self.fqcbox.text(),  self.outputs.currentText(), self.choice[self.left.currentText()])
             
             fourcc = cv.VideoWriter_fourcc(*'mp4v')
             frame_width = int(self.cap.get(cv.CAP_PROP_FRAME_WIDTH))
@@ -231,18 +232,20 @@ class MainWindow(QMainWindow):
             
             self.setWindowTitle("Place Preference (RECORDING)")
             while time.time() < end:
-                runner.anal(self.frame)
+                self.runner.anal(self.frame)
                 QtTest.QTest.qWait(self.refresh)
             self.vid.release()
             self.setWindowTitle("Place Preference (NOT RECORDING)")
 
-            runner.end()
+            self.runner.end()
             self.fqcbox.setEnabled(True)
             self.filterlabel.setEnabled(True)
             self.txtbox.setEnabled(True)
             self.outputs.setEnabled(True)
             self.launch.setEnabled(True)
             self.left.setEnabled(True)
+            self.left.setEnabled(True)
+
             self.vid = 0
     def intcheck(self, num): #ensures the text is an int
         num = num.strip()
@@ -268,6 +271,9 @@ class MainWindow(QMainWindow):
         self.cap.set(cv.CAP_PROP_SATURATION, self.defaults["saturation"])
         self.cap.set(cv.CAP_PROP_CONTRAST, self.defaults["wb"])
         self.cap.set(cv.CAP_PROP_GAIN, self.defaults["gain"])
+        if self.vid != 0:
+            self.vid.release()
+            self.runner.end()
 
 
 app = QApplication([])

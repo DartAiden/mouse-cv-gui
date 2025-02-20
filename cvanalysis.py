@@ -19,14 +19,14 @@ def getcams():
 
 class saver():
     def __init__(self, filename, width, height, fqc, output, direction):
-
+        self.filename = filename[:-4]
         self.lister = []
         self.fqc = fqc
         self.output = output
-        self.arduino = serial.Serial(port = self.output, baudrate=11520)
-        send = str(self.fqc) +"|"
+        self.arduino = serial.Serial(port = self.output, baudrate=9600)
+        send = str(self.fqc) + '\n'
         self.direction = direction
-        self.arduino.write(send.encode())
+        self.arduino.write(send.encode('utf-8'))
     def anal(self, frame: np.ndarray):
 
         frame = cv.cvtColor(frame, cv.COLOR_BGR2GRAY) #converts the frame back to grayscale to elimate the channel
@@ -42,23 +42,20 @@ class saver():
         self.lister.append(np.array((cX, cY))) #Adds it to the record of centroids
         if self.direction:
             if cX > 320: #placeholder function - replace with laser 
-                self.arduino.write("12|".encode())
-                print("right")
+                self.arduino.write("0\n".encode('utf-8'))
             else:
-                self.arduino.write("02|".encode())
-                print("left")
+                self.arduino.write("1\n".encode('utf-8'))
         else:
             if cX > 320: #placeholder function - replace with laser 
-                self.arduino.write("02|".encode())
-                print("right")
+                self.arduino.write("1\n".encode('utf-8'))
             else:
-                self.arduino.write("12|".encode())
-                print("left")
+                self.arduino.write("0\n".encode('utf-8'))
     def end(self):
         arr = np.array(self.lister)
         plt.scatter(arr[:,0], arr[:,1])
         plt.xlim([0,640])
         plt.ylim([0,480])
         plt.show()
+        plt.savefig(self.filename)
         self.arduino.close()
-            
+    
