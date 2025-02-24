@@ -187,7 +187,7 @@ class MainWindow(QMainWindow):
                     self.inter = frame
                     self.inter = cv.cvtColor(self.inter, cv.COLOR_BGR2RGB)
                     self.inter = cv.cvtColor(self.inter, cv.COLOR_BGR2GRAY)  #converts it to grayscale
-                    ret, self.inter = cv.threshold(self.inter, 127, 255, cv.THRESH_BINARY) #and then the binary black and white
+                    ret, self.inter = cv.threshold(self.inter, 50, 255, cv.THRESH_BINARY) #and then the binary black and white
                     self.frame = cv.cvtColor(self.inter, cv.COLOR_GRAY2RGB) #and then back to color
 
                     

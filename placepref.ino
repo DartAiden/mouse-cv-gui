@@ -17,7 +17,7 @@ void setup() {
       if (Serial.available()){
             frq = Serial.parseFloat();
             setupfrq = true;
-            float per = 1/frq;
+            float per = 1000/frq;
             lsron = 10;
             lsroff = per - lsron;
             break;
