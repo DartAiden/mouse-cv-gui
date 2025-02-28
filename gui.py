@@ -9,6 +9,7 @@ import numpy as np
 import time
 import os
 from pygrabber.dshow_graph import FilterGraph
+import serial.tools.list_ports
 '''
 This is a program that creates a GUI to determine which place a mouse preferences, analyzes the position, and then plots it.
 The backbone is the QT for Python environment. It pulls a frame and then displays it in the GUI. When launch is started, it passes the frames it pulls to an OpenCV series of functions.
@@ -76,7 +77,7 @@ class MainWindow(QMainWindow):
         self.outputs = QComboBox()
         self.outputlabel = QLabel("Outputs:")
         layout.addWidget(self.outputlabel, 1,0)
-        outputlist = ['COM1','COM2', 'COM3', 'COM4'] #outputs for the computer in the lab, will change thsi maybe
+        outputlist = [i.name for i in serial.tools.list_ports.comports()] #outputs for the computer in the lab, will change thsi maybe
         self.outputs.count = len(outputlist)
         self.outputs.editable = False
         self.outputs.addItems(outputlist)
