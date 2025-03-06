@@ -3,11 +3,21 @@ int fqc;
 int lsrout = 12;
 float lsron;
 float lsroff;
-float frq;
+String frq = "";
 bool setupfrq = false;
 bool on = false;
 unsigned long end = 0;
 unsigned long now;
+bool checkchar(String s, char c){
+for(int i = 0; i < s.length(); i++){
+    if (s[i] == c){
+      return true;
+    }
+  } 
+return false;
+}
+
+
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
@@ -15,12 +25,14 @@ void setup() {
   while (true){
     if (!setupfrq){
       if (Serial.available()){
-            frq = Serial.parseFloat();
-            setupfrq = true;
-            float per = 1000/frq;
-            lsron = 10;
-            lsroff = per - lsron;
-            break;
+            frq = Serial.readStringUntil('\n');
+            if (checkchar(frq, '|')){
+              setupfrq = true;
+              float per = 1000/frq.toFloat();
+              lsron = 10;
+              lsroff = per - lsron;
+              break;
+            }
 
       }
     }

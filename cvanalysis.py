@@ -24,7 +24,7 @@ class saver():
         self.fqc = fqc
         self.output = output
         self.arduino = serial.Serial(port = self.output, baudrate=9600)
-        send = str(self.fqc) + '\n'
+        send = str(self.fqc) + '|\n'
         self.direction = direction
         self.arduino.write(send.encode('utf-8'))
     def anal(self, frame: np.ndarray):
