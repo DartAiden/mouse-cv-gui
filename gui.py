@@ -58,7 +58,6 @@ class MainWindow(QMainWindow):
                 self.cap.set(cv.CAP_PROP_WB_TEMPERATURE, self.defaults["wb"])
                 self.cap.set(cv.CAP_PROP_GAIN, self.defaults["gain"])
 
-        self.timeend = 60 #how long the recording lasts for
         self.refresh = 20 #how often to pull the frame
         devices = FilterGraph().get_input_devices()
         self.camnames = [] #strings of the camnames
@@ -71,7 +70,7 @@ class MainWindow(QMainWindow):
         layout.setContentsMargins(10,0,10,0)
         layout.setSpacing(10)
         self.setWindowTitle("Place Preference (NOT RECORDING)")
-        self.setFixedSize(QSize(800, 600))                        
+        self.setFixedSize(QSize(1000, 750))                        
         self.setStyleSheet("background : white;") 
 
         self.outputs = QComboBox()
@@ -103,7 +102,7 @@ class MainWindow(QMainWindow):
 
     
 
-        self.txtboxlabel = QLabel("File name: (Do not include extension)")
+        self.txtboxlabel = QLabel("File name (Do not include extension):")
         self.txtbox = QLineEdit()
         layout.addWidget(self.txtboxlabel,9,0,1,10)
         layout.addWidget(self.txtbox,11,0,1,7)
@@ -117,6 +116,11 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.currentpath, 15,0,1,3)
 
 
+        self.timerlabel = QLabel("Time (Seconds):")
+        self.timerbox = QLineEdit()
+        layout.addWidget(self.timerlabel, 17,0,1,3)
+        layout.addWidget(self.timerbox, 17,4,1,5)
+        
 
         self.fqcboxla = QLabel("Frequency (Hz):")
         self.fqcbox = QLineEdit()
@@ -140,7 +144,7 @@ class MainWindow(QMainWindow):
         except:
             pass
         self.currentframe = QLabel()
-        layout.addWidget(self.currentframe, 22, 0, 1, 14)
+        layout.addWidget(self.currentframe, 22, 1, 1, 14)
         self.defaults = {"brightness" : self.cap.get(cv.CAP_PROP_BRIGHTNESS), #These save the default values of certain camera settings on OpenCV.
                     "saturation" : self.cap.get(cv.CAP_PROP_SATURATION), #OpenCV modifies the cameara settings, so this is necessary
                     "contrast" : self.cap.get(cv.CAP_PROP_CONTRAST),
@@ -222,7 +226,9 @@ class MainWindow(QMainWindow):
             self.filepathbut.setEnabled(False)
             cams = cvanalysis.getcams()
             self.launch.setEnabled(False)
+            self.txtbox.setEnabled(False)
             self.name = self.filepath + str(self.txtbox.text()) + ".mp4"
+            self.timeend = self.txtbox.text()
             end = time.time() + self.timeend
             self.runner = cvanalysis.saver(self.name, 640, 320, self.fqcbox.text(),  self.outputs.currentText(), self.choice[self.left.currentText()])
             
@@ -246,6 +252,7 @@ class MainWindow(QMainWindow):
             self.launch.setEnabled(True)
             self.left.setEnabled(True)
             self.left.setEnabled(True)
+            self.txtbox.setEnabled(True)
 
             self.vid = 0
     def intcheck(self, num): #ensures the text is an int

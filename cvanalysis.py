@@ -23,6 +23,7 @@ class saver():
         self.lister = []
         self.fqc = fqc
         self.output = output
+        self.arduino.flush()
         self.arduino = serial.Serial(port = self.output, baudrate=9600)
         send = str(self.fqc) + '|\n'
         self.direction = direction
