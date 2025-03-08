@@ -23,11 +23,15 @@ class saver():
         self.lister = []
         self.fqc = fqc
         self.output = output
-        self.arduino.flush()
         self.arduino = serial.Serial(port = self.output, baudrate=9600)
-        send = str(self.fqc) + '|\n'
+        self.arduino.flush()
         self.direction = direction
-        self.arduino.write(send.encode('utf-8'))
+
+        for i in range(100):
+            send = str(self.fqc) + '\n'
+            self.arduino.write(send.encode('utf-8'))
+            time.sleep(.01)
+
     def anal(self, frame: np.ndarray):
 
         frame = cv.cvtColor(frame, cv.COLOR_BGR2GRAY) #converts the frame back to grayscale to elimate the channel
@@ -45,10 +49,10 @@ class saver():
             if cX > 320: #placeholder function - replace with laser 
                 self.arduino.write("0\n".encode('utf-8'))
             else:
-                self.arduino.write("1\n".encode('utf-8'))
+                self.arduino.write("-1\n".encode('utf-8'))
         else:
             if cX > 320: #placeholder function - replace with laser 
-                self.arduino.write("1\n".encode('utf-8'))
+                self.arduino.write("-1\n".encode('utf-8'))
             else:
                 self.arduino.write("0\n".encode('utf-8'))
     def end(self):
@@ -59,4 +63,3 @@ class saver():
         plt.show()
         plt.savefig(self.filename)
         self.arduino.close()
-    
