@@ -18,14 +18,20 @@ def getcams():
 
 
 class saver():
-    def __init__(self, filename, width, height, fqc, output):
-
+    def __init__(self, filename, width, height, fqc, output, direction):
+        self.filename = filename[:-4]
         self.lister = []
         self.fqc = fqc
         self.output = output
-        #self.arduino = serial.Serial(port = self.output, baudrate=11520)
-        send = str(self.fqc) +"|"
-        #self.arduino.write(send.encode())
+        self.arduino = serial.Serial(port = self.output, baudrate=9600)
+        self.arduino.flush()
+        self.direction = direction
+
+        for i in range(100):
+            send = str(self.fqc) + '\n'
+            self.arduino.write(send.encode('utf-8'))
+            time.sleep(.01)
+
     def anal(self, frame: np.ndarray):
 
         frame = cv.cvtColor(frame, cv.COLOR_BGR2GRAY) #converts the frame back to grayscale to elimate the channel
@@ -36,20 +42,24 @@ class saver():
         conts, _ = cv.findContours(frame, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE) #pulls the countor
         conts = sorted(conts, key =lambda it: cv.contourArea(it), reverse = True) #sorts them by area in reverse order
         m = cv.moments(conts[0]) #pulls the largest
-        cX = int(m["m10"] / m["m00"]) #finds the midpoind
+        cX = int(m["m10"] / m["m00"]) #finds the midpoint
         cY = int(m["m01"] / m["m00"])
         self.lister.append(np.array((cX, cY))) #Adds it to the record of centroids
-        if cX > 320: #placeholder function - replace with laser
-            #self.arduino.write("12|".encode())
-            print("right")
+        if self.direction:
+            if cX > 320: #placeholder function - replace with laser 
+                self.arduino.write("0\n".encode('utf-8'))
+            else:
+                self.arduino.write("-1\n".encode('utf-8'))
         else:
-            #self.arduino.write("02|".encode())
-            print("left")
+            if cX > 320: #placeholder function - replace with laser 
+                self.arduino.write("-1\n".encode('utf-8'))
+            else:
+                self.arduino.write("0\n".encode('utf-8'))
     def end(self):
         arr = np.array(self.lister)
         plt.scatter(arr[:,0], arr[:,1])
         plt.xlim([0,640])
         plt.ylim([0,480])
         plt.show()
-        #self.arduino.close()
-            
+        plt.savefig(self.filename)
+        self.arduino.close()

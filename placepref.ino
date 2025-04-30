@@ -1,31 +1,61 @@
-int fqc;
-int lsrout = 12;
 #include <Wire.h>
+int fqc;
+int lsrout = 9;
+float lsron;
+float lsroff;
+int frq;
+bool setupfrq = false;
+bool on = false;
+unsigned long end = 0;
+unsigned long now;
+bool checkchar(String s, char c){
+for(int i = 0; i < s.length(); i++){
+    if (s[i] == c){
+      return true;
+    }
+  } 
+return false;
+}
+
+
+
 void setup() {
   // put your setup code here, to run once:
-  Serial.begin(11520);
+  Serial.begin(9600);
   pinMode(lsrout, OUTPUT);
-  String data = "s";
-  while (data == "s"){
-      fqc = mySerial.readStringUntil("|").toFloat();
-      float per = 1/fqc;
-      float lsron =  10;
-      float lsroff = per - lsron;
-  }
+  setupfrq = false;
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-  String a = Serial.readStringUntil("2");
-  int r = a.toInt();
-  if (r == 1){
+  if (setupfrq){
+  now = millis();
+  if (Serial.available()){
+  int r = Serial.parseInt();
+  if (r == -1 && !on && now > end){
+    on = true;
     digitalWrite(lsrout, HIGH);
-    delay(lsron);
+    end = now + lsron;
+  }
+  else if (r ==  -1 && on && now > end){
+    on = false;
     digitalWrite(lsrout, LOW);
-    delay(lsroff);
+    end = now + lsroff;
   }
   else if (r == 0){
     digitalWrite(lsrout, LOW);
+    end = 0;
+    on = false;
   }
-
+}
+}
+  else{
+  frq = Serial.parseInt();
+  Serial.flush();
+  if (frq != -1 && frq != 0){
+    setupfrq = true;
+    float per = 1000/frq;
+    lsron = 10;
+    lsroff = per - lsron;
+    }
+  }
 }
